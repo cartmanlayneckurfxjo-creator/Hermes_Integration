@@ -2,7 +2,8 @@
 
 **Дата актуализации:** 2026-09-04  
 **Проект:** `C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration`  
-**Текущий статус:** ACP протокол отлажен, Windows дедлоки устранены, бот-профиль `antigravity` создан и проверен, подготовлен Git/GitHub репозиторий.
+**GitHub:** [cartmanlayneckurfxjo-creator/Hermes_Integration](https://github.com/cartmanlayneckurfxjo-creator/Hermes_Integration)  
+**Текущий статус:** ACP протокол отлажен, дедлоки устранены, бот `antigravity` создан, проект задеплоен на GitHub, встроен статус-бар в Antigravity IDE.
 
 ---
 
@@ -11,14 +12,18 @@
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                   Antigravity IDE                        │
-│             (Главный архитектор, оркестратор)            │
+│   • Главный архитектор / Оркестратор                     │
+│   • Status Bar: $(hubot) Hermes [antigravity] ⚡        │
+│   • Extension: hermes-statusbar-1.0.0-universal          │
 └──────────────────────────┬───────────────────────────────┘
                            │ Agent Client Protocol (ACP)
                            │ stdio (JSON-RPC 2.0 streaming)
                            ▼
 ┌──────────────────────────────────────────────────────────┐
 │                hermes_acp_runner.py                      │
-│      (Python ACP клиент, авто-одобрение, парсер файлов)  │
+│   • Python ACP клиент (авто-одобрение, парсер файлов)    │
+│   • Динамический поиск HERMES_DIR и HERMES_PYTHON        │
+│   • Флаги: --save-file, --profile                        │
 └──────────────────────────┬───────────────────────────────┘
                            │ subprocess (python -m acp_adapter)
                            │ env: HERMES_HOME=profiles/<name>
@@ -26,66 +31,64 @@
 ┌──────────────────────────────────────────────────────────┐
 │                   Hermes Agent                           │
 │   (Автономный агент / специализированные бот-профили)   │
-│   • Profile: antigravity (F:\AI\hermes\profiles\antigravity)│
-│   • Core: F:\AI\hermes\hermes-agent                      │
-│   • Python: F:\AI\hermes\hermes-agent\venv               │
+│   • Profile: antigravity (<HERMES_DIR>/profiles/antigravity)│
+│   • SOUL.md: Роль выделенного ко-пилота для Antigravity  │
 └──────────────────────────┬───────────────────────────────┘
-                           │ HTTP / OpenAI API (порт 20128)
+                           │ HTTP / OpenAI API
                            ▼
 ┌──────────────────────────────────────────────────────────┐
-│                     OmniRoute                            │
-│  (Умный шлюз, 18 стратегий Combos, квоты, fallback)     │
+│             Локальный / Внешний AI-шлюз                  │
+│       (Провайдеры, Combos, fallback, квоты)             │
 └──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Что сделано и решено
+## 2. Что сделано и зафиксировано
 
 1. **Решение проблемы зависаний (Deadlock в Windows):**
-   - Проблема: запуск через `hermes-acp.cmd` вызывал утечку открытых дескрипторов Windows CMD, а `tools.file_tools` внутри Hermes подвисал на создании сессионного bash-снимка среды (`LocalEnvironment`).
-   - Решение:
-     - Запуск напрямую: `python.exe -m acp_adapter` из `hermes_acp_runner.py`.
-     - Добавлен ключ `--save-file <filename>`: перехватывает сгенерированный markdown-блок кода из ACP-потока и сохраняет его на диск силами клиента (скорость генерации скриптов: **~5 секунд**).
+   - Прямой запуск: `python.exe -m acp_adapter` из `hermes_acp_runner.py` без батников и утечек дескрипторов CMD.
+   - Опция `--save-file <filename>`: сохранение кода из ACP-потока на диск клиентом за **~5 секунд** в обход виртуального bash-окружения на Windows.
 
 2. **Поддержка бот-профилей (Hermes Bot Mode):**
-   - Боты в Hermes — это изолированные профили в `F:\AI\hermes\profiles\<profile_name>` со своими `config.yaml`, `SOUL.md` и памятью.
-   - Создан выделенный профиль бота `antigravity` в `F:\AI\hermes\profiles\antigravity`.
-   - В `hermes_acp_runner.py` добавлен ключ `--profile <name>` (устанавливает переменную среды `HERMES_HOME`).
-   - Тест отклика бота `antigravity`: **4.6 секунды**.
+   - Создан бот-профиль `antigravity` (`profiles/antigravity/SOUL.md`).
+   - Поддержка переключения ботов через `--profile <name>`. Отклик: **4.6 сек**.
 
-3. **Сквозной тест генерации и исполнения:**
-   - Сгенерирован скрипт [`check_disk.py`](file:///C:/Users/may/.gemini/antigravity-ide/scratch/Hermes_Integration/check_disk.py) через модель `laguna-s-2.1-free` за 5.3 сек.
-   - Скрипт проверен и выполнен:
-     - Диск `C:\`: 26.43 ГБ свободно.
-     - Диск `F:\`: 172.87 ГБ свободно.
+3. **Портативность путей:**
+   - Код раннера и документация очищены от жестких путей.
+   - Внедрен автопоиск через `HERMES_DIR` и `HERMES_PYTHON` (fallback на локальные пути).
 
-4. **Очистка и ускорение старта Hermes:**
-   - Отключены подвисающие MCP-серверы в `config.yaml`.
-   - Время старта снижено с 2 минут до 1.5 секунд.
+4. **Деплой на GitHub:**
+   - Репозиторий: **[https://github.com/cartmanlayneckurfxjo-creator/Hermes_Integration](https://github.com/cartmanlayneckurfxjo-creator/Hermes_Integration)**.
+   - Чистый `README.md` без привязки к конкретным путям и локальным сервисам.
+
+5. **Расширение статус-бара для Antigravity IDE:**
+   - Установлено в: `C:\Users\may\.antigravity\extensions\hermes-statusbar-1.0.0-universal`.
+   - Исходники в репозитории: `vscode-extension/`.
+   - Функции: отображение активного бота и статуса шлюза, меню быстрого запуска задач ACP, переключение ботов.
 
 ---
 
 ## 3. Команды запуска
 
-### Базовый запрос к Hermes:
-```powershell
-& "F:\AI\hermes\hermes-agent\venv\Scripts\python.exe" "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration\hermes_acp_runner.py" "Твой запрос" "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration"
+### Базовый запуск:
+```bash
+python hermes_acp_runner.py "Твой запрос" "путь_к_проекту"
 ```
 
-### Генерация файла с автосохранением на диск:
-```powershell
-& "F:\AI\hermes\hermes-agent\venv\Scripts\python.exe" "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration\hermes_acp_runner.py" "Напиши скрипт..." "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration" --save-file "myscript.py"
+### Генерация файла со сквозным сохранением:
+```bash
+python hermes_acp_runner.py "Напиши скрипт..." "путь_к_проекту" --save-file "myscript.py"
 ```
 
-### Запрос к конкретному боту (например, antigravity):
-```powershell
-& "F:\AI\hermes\hermes-agent\venv\Scripts\python.exe" "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration\hermes_acp_runner.py" "Кто ты и какая твоя задача?" "C:\Users\may\.gemini\antigravity-ide\scratch\Hermes_Integration" --profile antigravity
+### Запрос к конкретному боту:
+```bash
+python hermes_acp_runner.py "Твоя задача" "путь_к_проекту" --profile antigravity
 ```
 
 ---
 
-## 4. Следующие задачи
-- Связать локальный Git репозиторий с удаленным GitHub (`git remote add origin <url>`, `git push`).
-- Настроить Combos в OmniRoute для отказоустойчивой связки моделей (Claude / DeepSeek / Free).
-- Делегировать автономные задачи ресерча и написания тестов Hermes-ботам.
+## 4. Следующие шаги
+- Перезагрузить окно Antigravity (`Developer: Reload Window`) для отображения статус-бара.
+- Настроить Combos / Fallback моделей при необходимости добавления нескольких нейросетей.
+- Использовать бота `antigravity` для автономных исследовательских и тестовых задач.
