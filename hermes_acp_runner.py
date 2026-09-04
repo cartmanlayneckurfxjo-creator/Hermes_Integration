@@ -71,11 +71,34 @@ async def run_acp_task(prompt_text: str, cwd: str = None, save_file: str = None,
         cwd = os.getcwd()
 
     client = AntigravityACPClient()
-    python_exe = r"F:\AI\hermes\hermes-agent\venv\Scripts\python.exe"
+    # Locate Hermes installation directory
+    hermes_dir = os.environ.get("HERMES_DIR")
+    if not hermes_dir:
+        for candidate in [r"F:\AI\hermes", os.path.expanduser("~/.hermes"), os.path.expanduser("~/hermes")]:
+            if os.path.exists(candidate):
+                hermes_dir = candidate
+                break
+        if not hermes_dir:
+            hermes_dir = r"F:\AI\hermes"
+
+    hermes_agent_dir = os.path.join(hermes_dir, "hermes-agent")
+    python_exe = os.environ.get("HERMES_PYTHON")
+    if not python_exe:
+        for candidate_py in [
+            os.path.join(hermes_agent_dir, "venv", "Scripts", "python.exe"),
+            os.path.join(hermes_agent_dir, "venv", "bin", "python"),
+            sys.executable,
+        ]:
+            if os.path.exists(candidate_py):
+                python_exe = candidate_py
+                break
+        if not python_exe:
+            python_exe = sys.executable
 
     print(f"[*] Starting Hermes ACP Server...", flush=True)
     if profile:
         print(f"[*] Profile/Bot: {profile}", flush=True)
+    print(f"[*] Hermes Dir: {hermes_dir}", flush=True)
     print(f"[*] Workspace: {cwd}", flush=True)
     print(f"[*] Task: {prompt_text}\n", flush=True)
 
@@ -87,14 +110,14 @@ async def run_acp_task(prompt_text: str, cwd: str = None, save_file: str = None,
         "HERMES_ACCEPT_HOOKS": "1",
     }
     if profile:
-        sub_env["HERMES_HOME"] = rf"F:\AI\hermes\profiles\{profile}"
+        sub_env["HERMES_HOME"] = os.path.join(hermes_dir, "profiles", profile)
 
     async with acp.spawn_agent_process(
         client,
         python_exe,
         "-m",
         "acp_adapter",
-        cwd=r"F:\AI\hermes\hermes-agent",
+        cwd=hermes_agent_dir if os.path.exists(hermes_agent_dir) else hermes_dir,
         env=sub_env,
         transport_kwargs={"limit": 10 * 1024 * 1024, "stderr": None}
     ) as (conn, proc):
