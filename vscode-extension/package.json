@@ -1,0 +1,30 @@
+﻿{
+  "name": "hermes-statusbar",
+  "displayName": "Hermes Agent Status",
+  "description": "Hermes Agent & ACP Status Bar for Antigravity IDE",
+  "version": "1.0.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "hermes.openMenu",
+        "title": "Hermes: Open Menu"
+      },
+      {
+        "command": "hermes.runTask",
+        "title": "Hermes: Run ACP Task"
+      },
+      {
+        "command": "hermes.switchProfile",
+        "title": "Hermes: Switch Bot Profile"
+      }
+    ]
+  }
+}
